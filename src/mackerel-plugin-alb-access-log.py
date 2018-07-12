@@ -116,7 +116,7 @@ def main():
             )
             for i in records:
                 print(i)
-    exit(0)
+
 
 if __name__ == "__main__":
     main()
