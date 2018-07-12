@@ -60,8 +60,6 @@ def main():
     duration = args.duration
     verbose = args.verbose
 
-    print(region, bucket, prefix, verbose)
-
     s3 = boto3.client("s3", region)
 
     # ToDo: support marker args
@@ -70,8 +68,36 @@ def main():
         Prefix=prefix
     )
     for obj in objs["Contents"]:
-        if now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS) < obj["LastModified"].replace(tzinfo=None):
-            print(obj)
+        cut_timestamp = now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS)
+        if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
+            # print(obj)
+            resp = s3.select_object_content(
+                Bucket=bucket,
+                Key=obj["Key"],
+                ExpressionType="SQL",
+                Expression="Select * from S3Object s",
+                InputSerialization={
+                    "CompressionType": "GZip",
+                    "CSV": {
+                        "FileHeaderInfo": "NONE",
+                        "RecordDelimiter": "\n",
+                        "FieldDelimiter": " ",
+                        "QuoteCharacter": "\"",
+                    },
+                },
+                OutputSerialization={
+                    "CSV": {
+                        "RecordDelimiter": "\n",
+                        "FieldDelimiter": "\t",
+                        "QuoteCharacter": "\"",
+                    },
+                },
+            )
+            print(obj["Key"])
+            for event in resp["Payload"]:
+                if "Records" in event:
+                    records = event["Records"]["Payload"].decode("utf-8")
+                    print(records)
     exit(0)
 
 if __name__ == "__main__":
