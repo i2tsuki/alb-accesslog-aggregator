@@ -5,6 +5,8 @@ import datetime
 
 import boto3
 
+RECORD_DELAY_SECONDS = 600
+
 def _temp_fileopen(fn):
     tempfp = open(file=fn, mode='r', encoding='utf-8')
     return tempfp
@@ -45,7 +47,7 @@ def main():
     # parse args
     args = parse_args()
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
 
     region = args.region
     bucket = args.bucket
@@ -68,8 +70,8 @@ def main():
         Prefix=prefix
     )
     for obj in objs["Contents"]:
-        print(obj)
-
+        if now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS) < obj["LastModified"].replace(tzinfo=None):
+            print(obj)
     exit(0)
 
 if __name__ == "__main__":
