@@ -105,17 +105,23 @@ def main():
         Bucket=bucket,
         Prefix=prefix
     )
-    for obj in objs["Contents"]:
-        cut_timestamp = now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS)
-        if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
-            records = execute_query_alb_log(
-                client=s3,
-                bucket=bucket,
-                key=obj["Key"],
-                query="Select * from S3Object s",
-            )
-            for i in records:
-                print(i)
+
+    queries = [
+        "SELECT COUNT(*) FROM S3Object s WHERE s._6 = -1 OR s._7 = -1 OR s._8 = -1"
+    ]
+
+    for query in queries:
+        for obj in objs["Contents"]:
+            cut_timestamp = now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS)
+            if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
+                records = execute_query_alb_log(
+                    client=s3,
+                    bucket=bucket,
+                    key=obj["Key"],
+                    query="Select * from S3Object s",
+                )
+                for i in records:
+                    print(i)
 
 
 if __name__ == "__main__":
