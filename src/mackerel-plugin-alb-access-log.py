@@ -25,10 +25,11 @@ def parse_args():
                         metavar="PREFIX",
                         action="store", dest="prefix",
                         help="ALB access log location prefix (S3 bucket key prefix)")
-    parser.add_argument("--duration", type=str,
+    parser.add_argument("--duration", type=int,
                         metavar="DURATION",
                         action="store", dest="duration",
-                        help="aggregation duration")
+                        default=60,
+                        help="aggregation duration (seconds)")
     parser.add_argument("--tempfile",
                         metavar="TEMPORARY FILE",
                         type=_temp_fileopen, nargs=1,
@@ -54,6 +55,7 @@ def main():
         region=region,
         date=now.strftime("%Y/%m/%d")
     )
+    duration = args.duration
     verbose = args.verbose
 
     print(region, bucket, prefix, verbose)
