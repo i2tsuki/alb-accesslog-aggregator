@@ -48,12 +48,14 @@ def main():
     args = parse_args()
 
     now = datetime.datetime.utcnow()
+    sts = boto3.client("sts")
+    aws_account_id = sts.get_caller_identity()["Account"]
 
     region = args.region
     bucket = args.bucket
-    prefix = "{prefix}/AWSLogs/{aws_account}/elasticloadbalancing/{region}/{date}/".format(
+    prefix = "{prefix}/AWSLogs/{aws_account_id}/elasticloadbalancing/{region}/{date}/".format(
         prefix=args.prefix,
-        aws_account="000000000000",
+        aws_account_id=aws_account_id,
         region=region,
         date=now.strftime("%Y/%m/%d")
     )
