@@ -43,6 +43,42 @@ def parse_args():
     return args
 
 
+def execute_query_alb_log(client=None, bucket=None, key=None, query=None):
+    if bucket is None or key is None or query is None:
+        print("all args none")
+        return None
+
+    records = []
+
+    resp = client.select_object_content(
+        Bucket=bucket,
+        Key=key,
+        ExpressionType="SQL",
+        Expression=query,
+        InputSerialization={
+            "CompressionType": "GZip",
+            "CSV": {
+                "FileHeaderInfo": "NONE",
+                "RecordDelimiter": "\n",
+                "FieldDelimiter": " ",
+                "QuoteCharacter": "\"",
+            },
+        },
+        OutputSerialization={
+            "CSV": {
+                "RecordDelimiter": "\n",
+                "FieldDelimiter": "\t",
+                "QuoteCharacter": "\"",
+            },
+        },
+    )
+    for event in resp["Payload"]:
+        if "Records" in event:
+            records.append(event["Records"]["Payload"].decode("utf-8"))
+
+    return records
+
+
 def main():
     # parse args
     args = parse_args()
@@ -72,34 +108,14 @@ def main():
     for obj in objs["Contents"]:
         cut_timestamp = now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS)
         if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
-            # print(obj)
-            resp = s3.select_object_content(
-                Bucket=bucket,
-                Key=obj["Key"],
-                ExpressionType="SQL",
-                Expression="Select * from S3Object s",
-                InputSerialization={
-                    "CompressionType": "GZip",
-                    "CSV": {
-                        "FileHeaderInfo": "NONE",
-                        "RecordDelimiter": "\n",
-                        "FieldDelimiter": " ",
-                        "QuoteCharacter": "\"",
-                    },
-                },
-                OutputSerialization={
-                    "CSV": {
-                        "RecordDelimiter": "\n",
-                        "FieldDelimiter": "\t",
-                        "QuoteCharacter": "\"",
-                    },
-                },
+            records = execute_query_alb_log(
+                client=s3,
+                bucket=bucket,
+                key=obj["Key"],
+                query="Select * from S3Object s",
             )
-            print(obj["Key"])
-            for event in resp["Payload"]:
-                if "Records" in event:
-                    records = event["Records"]["Payload"].decode("utf-8")
-                    print(records)
+            for i in records:
+                print(i)
     exit(0)
 
 if __name__ == "__main__":
