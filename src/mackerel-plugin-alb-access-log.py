@@ -118,7 +118,7 @@ def main():
                     client=s3,
                     bucket=bucket,
                     key=obj["Key"],
-                    query="Select * from S3Object s",
+                    query=query,
                 )
                 for i in records:
                     print(i)
