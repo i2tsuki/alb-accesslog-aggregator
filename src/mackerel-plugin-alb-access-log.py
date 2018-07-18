@@ -113,15 +113,19 @@ def main():
     for query in queries:
         for obj in objs["Contents"]:
             cut_timestamp = now - datetime.timedelta(seconds=RECORD_DELAY_SECONDS)
-            if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
-                records = execute_query_alb_log(
-                    client=s3,
-                    bucket=bucket,
-                    key=obj["Key"],
-                    query=query,
-                )
-                for i in records:
-                    print(i)
+            for epoch in range(1, 5):
+                datetime.timedelta(seconds=epoch*INTERVAL_SECONDS)
+                period = "s._2 > BETWEEN"
+                query = query.format(period=period)
+                if cut_timestamp < obj["LastModified"].replace(tzinfo=None):
+                    records = execute_query_alb_log(
+                        client=s3,
+                        bucket=bucket,
+                        key=obj["Key"],
+                        query=query,
+                    )
+                    for i in records:
+                        print(i)
 
 
 if __name__ == "__main__":
