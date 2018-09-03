@@ -108,7 +108,7 @@ def main():
         if attr["Key"] == "access_logs.s3.bucket":
             bucket = attr["Value"]
         if attr["Key"] == "access_logs.s3.prefix":
-            date = (now - datetime.timedelta(seconds=360)).strftime("%Y/%m/%d")
+            date = (now - datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)).strftime("%Y/%m/%d")
             bucket_prefix = "{prefix}/AWSLogs/{aws_account_id}/elasticloadbalancing/{region}/{date}/".format(
                 prefix=attr["Value"],
                 aws_account_id=aws_account_id,
