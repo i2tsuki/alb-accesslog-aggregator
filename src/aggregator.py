@@ -113,12 +113,28 @@ def main():
                 region=region,
                 date=date
             )
-    # ToDo: support marker args
-    # ToDo: filter object that `LastModified`
-    objs = s3.list_objects(
+
+    contents = []
+    objs = s3.list_objects_v2(
         Bucket=bucket,
         Prefix=bucket_prefix,
+        MaxKeys=1000,
     )
+    for content in (objs["Contents"]):
+        contents.append(content)
+    while True:
+        if "NextContinuationToken" in objs:
+            token = (objs["NextContinuationToken"])
+            objs = s3.list_objects_v2(
+                Bucket=bucket,
+                Prefix=bucket_prefix,
+                ContinuationToken=token,
+                MaxKeys=1000,
+            )
+            for content in (objs["Contents"]):
+                contents.append(content)
+        else:
+            break
 
     # Build targets list for constructing group by target query
     targets = []
@@ -180,9 +196,9 @@ def main():
         )
 
     # Aggregate s3 access log
-    for obj in objs["Contents"]:
+    for content in contents:
         # When `LastModified` is older than `RECORD_DELAY_SECONDS` seconds ago, loop continues
-        if obj["LastModified"].replace(tzinfo=None) < now - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
+        if content["LastModified"].replace(tzinfo=None) < now - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
             continue
 
         for epoch in range(1, 6):
@@ -208,7 +224,7 @@ def main():
                     records = execute_query_alb_log(
                         s3_client=s3,
                         bucket=bucket,
-                        key=obj["Key"],
+                        key=content["Key"],
                         query=q["query"],
                     )
                     for record in records:
@@ -242,9 +258,6 @@ def main():
 
 def lambda_handler(event, context):
     main()
-
-# format:
-# type timestamp elb client:port target:port request_processing_time target_processing_time response_processing_time elb_status_code target_status_code received_bytes sent_bytes request user_agent ssl_cipher ssl_protocol target_group_arn trace_id domain_name chosen_cert_arn matched_rule_priority request_creation_time actions_executed
 
 
 if __name__ == "__main__":
