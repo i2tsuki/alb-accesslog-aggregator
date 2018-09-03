@@ -18,7 +18,7 @@ logger.setLevel(ERROR)
 logger.addHandler(handler)
 logger.propagate = False
 
-# disable boto verbose log
+# Disable boto verbose log
 getLogger("boto3").setLevel(ERROR)
 getLogger("botocore").setLevel(ERROR)
 
@@ -80,7 +80,7 @@ def main():
     # Cutting off secs. and microsecs.
     now = now - datetime.timedelta(seconds=now.second, microseconds=now.microsecond)
     if now.minute % 5 != 1:
-        logger.error("aggregator must be executed x1 or x6 minutes")
+        logger.error("Aggregator must be executed x1 or x6 minutes")
         exit(1)
     sts = boto3.client("sts")
     aws_account_id = sts.get_caller_identity()["Account"]
@@ -143,11 +143,11 @@ def main():
 
     # Build targets list for constructing group by target query
     targets = []
-    # ToDo: support marker args
+    # ToDo(Very low priority): support marker args
     target_groups = elbv2.describe_target_groups(LoadBalancerArn=load_balancer_arn)["TargetGroups"]
 
     for target_group in target_groups:
-        # for instance based target group
+        # For instance based target group
         if target_group["TargetType"] == "instance":
             health_descriptions = elbv2.describe_target_health(TargetGroupArn=target_group["TargetGroupArn"])
             for health in health_descriptions["TargetHealthDescriptions"]:
@@ -159,7 +159,7 @@ def main():
                     port=str(health["Target"]["Port"]),
                 )
                 targets.append(target)
-        # for ip based target group
+        # For ip based target group
         elif target_groups["TargetType"] == "ip":
             for target_group in target_groups:
                 health_descriptions = elbv2.describe_target_health(TargetGroupArn=target_group["TargetGroupArn"])
@@ -183,7 +183,7 @@ def main():
         prefix=prefix,
         alb=load_balancer_name,
         targets=targets,
-        between="sample",
+        between="",
     )
     params = metric.create_graph_definition_param(
         queries=builder.queries,
