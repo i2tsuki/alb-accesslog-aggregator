@@ -27,11 +27,6 @@ getLogger("botocore").setLevel(ERROR)
 IGNORE_DELAY_BEFORE = 420 # Ignore bucket objects before 7 Min.
 INTERVAL_SECONDS = 60 # 1 Min. (mackerel.io can support metric point)
 
-def filter_obj_last_modified(obj=None, filter_timestamp=None):
-    if obj["LastModified"].replace(tzinfo=None) < filter_timestamp - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
-        return True
-
-
 def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
     if bucket is None or key is None or query is None:
         return None
@@ -189,7 +184,7 @@ def main():
     # Aggregate s3 access log
     for obj in objs["Contents"]:
         # When `LastModified` is older than `RECORD_DELAY_SECONDS` seconds ago, loop continues
-        if filter_obj_last_modified(obj=obj, filter_timestamp=now):
+        if obj["LastModified"].replace(tzinfo=None) < now - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
             continue
 
         for epoch in range(1, 6):
