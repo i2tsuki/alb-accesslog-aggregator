@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ALB Access Log Aggregate to Mackerel
+Parameters:
+  LoadBalancerName:
+    Type: String
+    Default: "alb-backend"
+  Prefix:
+    Type: String
+    Default: "alb"
+  Duration:
+    Type: Number
+    Default: "60"
+  MackerelApikey:
+    Type: String
+    Default: ""
+  MackerelService:
+    Type: String
+    Default: ""
+  MackerelRole:
+    Type: String
+    Default: ""
+Resources:
+  MkrALBAccessLogAggregatorRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument: |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": [
+                            "lambda.amazonaws.com"
+                        ]
+                    },
+                    "Action": [
+                        "sts:AssumeRole"
+                    ]
+                }
+            ]
+        }
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      RoleName: MkrALBAccessLogAggregator
+  EventALBAccessLogAggregator:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Lambda trigger that aggregate ALB access log"
+      Name: "event-aggregate-alb-accesslog"
+      ScheduleExpression: "cron(1-56/5 * * * ? *)"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn: !GetAtt [LambdaFunctionALBAccessLogAggregator, Arn]
+          Id: "Id1"
+  LambdaFunctionALBAccessLogAggregator:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ZipFile: |
+          # -*- coding: utf-8 -*-
+
+          def lambda_handler(event, context):
+              print("hogehoge")
+      Description: ""
+      Environment:
+        Variables:
+          REGION: !Sub "${AWS::Region}"
+          LOAD_BALANCER_NAME: !Sub "${LoadBalancerName}"
+          PREFIX: !Sub "${Prefix}"
+          DURATION: !Sub "${Duration}"
+          MACKEREL_APIKEY: !Sub "${MackerelApikey}"
+          MACKEREL_SERVICE: !Sub "${MackerelService}"
+          MACKEREL_ROLE: !Sub "${MackerelRole}"
+      Handler: "aggregator.lambda_handler"
+      MemorySize: 128
+      Role: !GetAtt [MkrALBAccessLogAggregatorRole, Arn]
+      Runtime: "python3.6"
+      Timeout: "60"
+      TracingConfig:
+        Mode: "PassThrough"
+  LambdaPermissionALBAccessLogAggregator:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt [EventALBAccessLogAggregator, Arn]
+      FunctionName: !GetAtt [LambdaFunctionALBAccessLogAggregator, Arn]

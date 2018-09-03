@@ -1,0 +1,32 @@
+[
+  {
+    "ParameterKey": "LoadBalancerName",
+    "ParameterValue": "alb-backend",
+    "UsePreviousValue": false
+  },
+  {
+    "ParameterKey": "Prefix",
+    "ParameterValue": "alb",
+    "UsePreviousValue": false
+  },
+  {
+    "ParameterKey": "Duration",
+    "ParameterValue": "60",
+    "UsePreviousValue": false
+  },
+  {
+    "ParameterKey": "MackerelApikey",
+    "ParameterValue": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "UsePreviousValue": false
+  },
+  {
+    "ParameterKey": "MackerelService",
+    "ParameterValue": "stg",
+    "UsePreviousValue": false
+  },
+  {
+    "ParameterKey": "MackerelRole",
+    "ParameterValue": "backend",
+    "UsePreviousValue": false
+  }
+]
