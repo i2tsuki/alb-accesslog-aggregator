@@ -60,6 +60,11 @@ def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
     return records
 
 
+def get_instance_private_ip(ec2_client=None, instance_id=""):
+        resp = ec2_client.describe_instances(InstanceIds=[instance_id])
+        return resp["Reservations"][-1]["Instances"][-1]["PrivateIpAddress"]
+
+
 def main():
     # Parse environment variable
     cli = Cli()
@@ -140,10 +145,6 @@ def main():
     targets = []
     # ToDo: support marker args
     target_groups = elbv2.describe_target_groups(LoadBalancerArn=load_balancer_arn)["TargetGroups"]
-
-    def get_instance_private_ip(ec2_client=None, instance_id=""):
-        resp = ec2_client.describe_instances(InstanceIds=[instance_id])
-        return resp["Reservations"][-1]["Instances"][-1]["PrivateIpAddress"]
 
     for target_group in target_groups:
         # for instance based target group
