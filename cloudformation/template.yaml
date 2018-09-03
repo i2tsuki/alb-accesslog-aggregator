@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ALB Access Log Aggregate to Mackerel
+Description: ALB Access log Aggregate
 Parameters:
   LoadBalancerName:
     Type: String
@@ -65,7 +65,7 @@ Resources:
           # -*- coding: utf-8 -*-
 
           def lambda_handler(event, context):
-              print("hogehoge")
+              exit(0)
       Description: ""
       Environment:
         Variables:
