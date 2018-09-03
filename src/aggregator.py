@@ -15,7 +15,7 @@ import query
 handler = StreamHandler()
 handler.setLevel(ERROR)
 
-logger = getLogger("alb-access-log-aggregator")
+logger = getLogger("alb-accesslog-aggregator")
 logger.setLevel(ERROR)
 logger.addHandler(handler)
 logger.propagate = False
