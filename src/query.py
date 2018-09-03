@@ -23,15 +23,13 @@ class Builder():
 
         if prefix != "" and prefix is not None:
             prefix = prefix + "."
-
         if alb == "":
-            # ToDo raise error exception
-            return None
+            return "`alb` args is null string"
         alb_host_id = self._alb_to_host_id(name=alb)
-
+        if alb_host_id == "":
+            return "`alb_host_id` is not registerd in mackerel"
         if targets is None:
-            # ToDo raise error exception
-            return None
+            return "`targets` args is None"
 
         # Build basic query
         self.queries = [
@@ -85,6 +83,8 @@ class Builder():
         # Build query by target
         for target in targets:
             host_id = self._target_to_host_id(target=target)
+            if host_id == "":
+                return "`host_id` is not registerd in mackerel"
 
             # count status code
             query = {
@@ -124,16 +124,17 @@ class Builder():
                 ],
             }
             self.queries.append(query)
+        return None
 
     def _alb_to_host_id(self, name):
         for host in self.alb_hosts:
             if host.name == name:
                 return host.id
-        return None
+        return ""
 
     def _target_to_host_id(self, target):
         ipaddr = target.split(sep=':')[0]
         for host in self.target_hosts:
             if ipaddr == host.interfaces[0]["ipAddress"]:
                 return host.id
-        return None
+        return ""

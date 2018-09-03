@@ -209,12 +209,14 @@ def main():
                 from_timestamp=from_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 to_timestamp=to_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            builder.build(
+            err = builder.build(
                 prefix=prefix,
                 alb=load_balancer_name,
                 targets=targets,
                 between=between,
             )
+            if err is not None:
+                logger.error("Aggregator failed to build queries: " + err)
 
             for query_group in builder.queries:
                 host_id = ""
