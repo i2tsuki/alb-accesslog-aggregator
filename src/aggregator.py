@@ -6,11 +6,10 @@ import sys
 from logging import getLogger, StreamHandler, INFO, ERROR
 
 import boto3
+from mackerel.clienthde import Client
 
 import metric
 import query
-
-from mackerel.clienthde import Client
 
 handler = StreamHandler()
 handler.setLevel(ERROR)
