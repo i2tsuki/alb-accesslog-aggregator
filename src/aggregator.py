@@ -174,7 +174,7 @@ def main():
         queries=builder.queries,
     )
     for param in params:
-        graph_definition = mkr.create_graph_definition(
+        mkr.create_graph_definition(
             name=param["name"],
             display_name=param["name"],
             unit=param["unit"],
