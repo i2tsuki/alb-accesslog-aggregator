@@ -18,7 +18,6 @@ class Metrics():
         metric = {
             "host_id": host_id,
             "timestamp": calendar.timegm(timestamp.timetuple()),
-            # "timestamp": timestamp,
             "fixed_timestamp": fixed_timestamp,
             "name": name,
             "value": value,
