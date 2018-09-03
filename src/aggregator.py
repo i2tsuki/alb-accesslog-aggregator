@@ -8,6 +8,7 @@ from logging import getLogger, StreamHandler, INFO, ERROR
 import boto3
 from mackerel.clienthde import Client
 
+from cli import Cli
 import metric
 import query
 
@@ -25,38 +26,6 @@ getLogger("botocore").setLevel(ERROR)
 
 IGNORE_DELAY_BEFORE = 420 # Ignore bucket objects before 7 Min.
 INTERVAL_SECONDS = 60 # 1 Min. (mackerel.io can support metric point)
-
-
-class CLI():
-    def __init__(self):
-        self.mackerel_apikey = os.environ["MACKEREL_APIKEY"]
-
-        # region is S3 bucket region
-        self.region = os.environ["REGION"]
-        # load_balancer_name is AWS application loadbalancer name
-        self.load_balancer_name = os.environ["LOAD_BALANCER_NAME"]
-        # prefix is mackerel metric prefix
-        if "PREFIX" in os.environ:
-            self.prefix = os.environ["PREFIX"]
-        else:
-            self.prefix = "alb-log-aggregator"
-        # duration is between to aggregate ALB logs
-        if "DURATION" in os.environ:
-            self.duration = int(os.environ["DURATION"])
-        else:
-            self.duration = 60
-
-        # makerel_service is service that have ALB host and its targets host
-        self.mackerel_service = os.environ["MACKEREL_SERVICE"]
-        # mackerel_role is target hosts registered the ALB
-        self.mackerel_role = os.environ["MACKEREL_ROLE"].replace(" ", "").split(sep=',')
-
-        # verbose is logging verbosity
-        self.verbose = False
-        if "VERBOSE" in os.environ:
-            if os.environ["VERBOSE"] != "0":
-                self.verbose = True
-
 
 def filter_obj_last_modified(obj=None, filter_timestamp=None):
     if obj["LastModified"].replace(tzinfo=None) < filter_timestamp - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
@@ -100,7 +69,7 @@ def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
 
 def main():
     # Parse environment variable
-    cli = CLI()
+    cli = Cli()
     if cli.verbose:
         handler.setLevel(INFO)
         logger.setLevel(INFO)
