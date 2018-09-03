@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import datetime
-import os
 from logging import getLogger, StreamHandler, INFO, ERROR
 
 import boto3
