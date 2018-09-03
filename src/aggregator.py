@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
-import sys
 from logging import getLogger, StreamHandler, INFO, ERROR
 
 import boto3
@@ -103,7 +102,7 @@ def main():
     for attr in attributes:
         if attr["Key"] == "access_logs.s3.enabled":
             if not attr["Value"]:
-                sys.stderr.write("ALB attribute `access_logs.s3.enabled` is not enabled\n")
+                logger.error("ALB attribute `access_logs.s3.enabled` is not enabled\n")
                 exit(1)
         if attr["Key"] == "access_logs.s3.bucket":
             bucket = attr["Value"]
