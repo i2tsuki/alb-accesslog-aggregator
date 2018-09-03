@@ -68,8 +68,8 @@ def main():
     if cli.verbose:
         handler.setLevel(INFO)
         logger.setLevel(INFO)
-        # getLogger('boto3').setLevel(INFO)
-        # getLogger('botocore').setLevel(INFO)
+        getLogger('boto3').setLevel(INFO)
+        getLogger('botocore').setLevel(INFO)
 
     mkr = Client(mackerel_api_key=cli.mackerel_apikey)
 
@@ -108,7 +108,7 @@ def main():
         if attr["Key"] == "access_logs.s3.bucket":
             bucket = attr["Value"]
         if attr["Key"] == "access_logs.s3.prefix":
-            date = (now - datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)).strftime("%Y/%m/%d")
+            date = (now - datetime.timedelta(seconds=60)).strftime("%Y/%m/%d")
             bucket_prefix = "{prefix}/AWSLogs/{aws_account_id}/elasticloadbalancing/{region}/{date}/".format(
                 prefix=attr["Value"],
                 aws_account_id=aws_account_id,
