@@ -1,1 +1,3 @@
 boto3
+# mackerel.clienthde
+git+https://github.com/HDE/py-mackerel-client@hde-dev
