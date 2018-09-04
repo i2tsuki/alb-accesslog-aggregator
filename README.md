@@ -27,6 +27,12 @@ make create
 make create-changeset
 ```
 
+- Create package and deploy to AWS Lambda
+
+```sh
+make deploy
+```
+
 ## Requirements
 
 - awscli (For CloudFormation deployment)
