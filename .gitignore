@@ -1,3 +1,7 @@
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+
 archive/
 
 # Byte-compiled / optimized / DLL files
