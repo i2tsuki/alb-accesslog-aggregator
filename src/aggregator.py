@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import datetime
 from logging import getLogger, StreamHandler, INFO, ERROR
 

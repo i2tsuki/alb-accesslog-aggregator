@@ -62,8 +62,6 @@ Resources:
     Properties:
       Code:
         ZipFile: |
-          # -*- coding: utf-8 -*-
-
           def lambda_handler(event, context):
               exit(0)
       Description: ""
