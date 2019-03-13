@@ -25,6 +25,7 @@ getLogger("botocore").setLevel(ERROR)
 IGNORE_DELAY_BEFORE = 420 # Ignore bucket objects before 7 Min.
 INTERVAL_SECONDS = 60 # 1 Min. (mackerel.io can support metric point)
 
+
 def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
     if bucket is None or key is None or query is None:
         return None

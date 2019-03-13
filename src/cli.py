@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
+
 class Cli():
     def __init__(self):
         self.mackerel_apikey = os.environ["MACKEREL_APIKEY"]
