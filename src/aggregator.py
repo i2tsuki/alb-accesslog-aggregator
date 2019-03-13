@@ -21,8 +21,8 @@ logger.propagate = False
 getLogger("boto3").setLevel(ERROR)
 getLogger("botocore").setLevel(ERROR)
 
-IGNORE_DELAY_BEFORE = 420 # Ignore bucket objects before 7 Min.
-INTERVAL_SECONDS = 60 # 1 Min. (mackerel.io can support metric point)
+IGNORE_DELAY_BEFORE = 420  # Ignore bucket objects before 7 Min.
+INTERVAL_SECONDS = 60  # 1 Min. (mackerel.io can support metric point)
 
 
 def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
@@ -42,15 +42,15 @@ def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
                 "FileHeaderInfo": "NONE",
                 "RecordDelimiter": "\n",
                 "FieldDelimiter": " ",
-                "QuoteCharacter": "\"",
+                "QuoteCharacter": '"',
             },
         },
         OutputSerialization={
             "CSV": {
                 "RecordDelimiter": "\n",
                 "FieldDelimiter": "\t",
-                "QuoteCharacter": "\"",
-            },
+                "QuoteCharacter": '"',
+            }
         },
     )
     for event in resp["Payload"]:
@@ -61,8 +61,8 @@ def execute_query_alb_log(s3_client=None, bucket=None, key=None, query=None):
 
 
 def get_instance_private_ip(ec2_client=None, instance_id=""):
-        resp = ec2_client.describe_instances(InstanceIds=[instance_id])
-        return resp["Reservations"][-1]["Instances"][-1]["PrivateIpAddress"]
+    resp = ec2_client.describe_instances(InstanceIds=[instance_id])
+    return resp["Reservations"][-1]["Instances"][-1]["PrivateIpAddress"]
 
 
 def main():
@@ -71,8 +71,8 @@ def main():
     if cli.verbose:
         handler.setLevel(INFO)
         logger.setLevel(INFO)
-        getLogger('boto3').setLevel(INFO)
-        getLogger('botocore').setLevel(INFO)
+        getLogger("boto3").setLevel(INFO)
+        getLogger("botocore").setLevel(INFO)
 
     mkr = Client(mackerel_api_key=cli.mackerel_apikey)
 
@@ -95,14 +95,16 @@ def main():
     elbv2 = boto3.client("elbv2", region)
 
     # Get load balancer arn
-    load_balancer_arn = elbv2.describe_load_balancers(
-        Names=[load_balancer_name],
-    )["LoadBalancers"][-1]["LoadBalancerArn"]
+    load_balancer_arn = elbv2.describe_load_balancers(Names=[load_balancer_name])[
+        "LoadBalancers"
+    ][-1]["LoadBalancerArn"]
 
     # Get S3 Log bucket objects
     bucket = ""
     bucket_prefix = ""
-    attributes = elbv2.describe_load_balancer_attributes(LoadBalancerArn=load_balancer_arn)["Attributes"]
+    attributes = elbv2.describe_load_balancer_attributes(
+        LoadBalancerArn=load_balancer_arn
+    )["Attributes"]
     for attr in attributes:
         if attr["Key"] == "access_logs.s3.enabled":
             if not attr["Value"]:
@@ -116,27 +118,23 @@ def main():
                 prefix=attr["Value"],
                 aws_account_id=aws_account_id,
                 region=region,
-                date=date
+                date=date,
             )
 
     contents = []
-    objs = s3.list_objects_v2(
-        Bucket=bucket,
-        Prefix=bucket_prefix,
-        MaxKeys=1000,
-    )
-    for content in (objs["Contents"]):
+    objs = s3.list_objects_v2(Bucket=bucket, Prefix=bucket_prefix, MaxKeys=1000)
+    for content in objs["Contents"]:
         contents.append(content)
     while True:
         if "NextContinuationToken" in objs:
-            token = (objs["NextContinuationToken"])
+            token = objs["NextContinuationToken"]
             objs = s3.list_objects_v2(
                 Bucket=bucket,
                 Prefix=bucket_prefix,
                 ContinuationToken=token,
                 MaxKeys=1000,
             )
-            for content in (objs["Contents"]):
+            for content in objs["Contents"]:
                 contents.append(content)
         else:
             break
@@ -144,17 +142,20 @@ def main():
     # Build targets list for constructing group by target query
     targets = []
     # ToDo(Very low priority): support marker args
-    target_groups = elbv2.describe_target_groups(LoadBalancerArn=load_balancer_arn)["TargetGroups"]
+    target_groups = elbv2.describe_target_groups(LoadBalancerArn=load_balancer_arn)[
+        "TargetGroups"
+    ]
 
     for target_group in target_groups:
         # For instance based target group
         if target_group["TargetType"] == "instance":
-            health_descriptions = elbv2.describe_target_health(TargetGroupArn=target_group["TargetGroupArn"])
+            health_descriptions = elbv2.describe_target_health(
+                TargetGroupArn=target_group["TargetGroupArn"]
+            )
             for health in health_descriptions["TargetHealthDescriptions"]:
                 target = "{host}:{port}".format(
                     host=get_instance_private_ip(
-                        ec2_client=ec2,
-                        instance_id=health["Target"]["Id"],
+                        ec2_client=ec2, instance_id=health["Target"]["Id"]
                     ),
                     port=str(health["Target"]["Port"]),
                 )
@@ -162,11 +163,12 @@ def main():
         # For ip based target group
         elif target_groups["TargetType"] == "ip":
             for target_group in target_groups:
-                health_descriptions = elbv2.describe_target_health(TargetGroupArn=target_group["TargetGroupArn"])
+                health_descriptions = elbv2.describe_target_health(
+                    TargetGroupArn=target_group["TargetGroupArn"]
+                )
                 for health in health_descriptions["TargetHealthDescriptions"]:
                     target = "{host}:{port}".format(
-                        host=health["Target"]["Id"],
-                        port=str(health["Target"]["Port"])
+                        host=health["Target"]["Id"], port=str(health["Target"]["Port"])
                     )
                     targets.append(target)
 
@@ -179,15 +181,8 @@ def main():
     )
 
     # Create mackerel graph definition
-    builder.build(
-        prefix=prefix,
-        alb=load_balancer_name,
-        targets=targets,
-        between="",
-    )
-    params = metric.create_graph_definition_param(
-        queries=builder.queries,
-    )
+    builder.build(prefix=prefix, alb=load_balancer_name, targets=targets, between="")
+    params = metric.create_graph_definition_param(queries=builder.queries)
     for param in params:
         mkr.create_graph_definition(
             name=param["name"],
@@ -199,21 +194,20 @@ def main():
     # Aggregate s3 access log
     for content in contents:
         # When `LastModified` is older than `RECORD_DELAY_SECONDS` seconds ago, loop continues
-        if content["LastModified"].replace(tzinfo=None) < now - (datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)):
+        if content["LastModified"].replace(tzinfo=None) < now - (
+            datetime.timedelta(seconds=IGNORE_DELAY_BEFORE)
+        ):
             continue
 
         for epoch in range(1, 6):
-            to_timestamp = now - datetime.timedelta(seconds=duration*(epoch-1)+60)
-            from_timestamp = now - datetime.timedelta(seconds=duration*epoch+60)
+            to_timestamp = now - datetime.timedelta(seconds=duration * (epoch - 1) + 60)
+            from_timestamp = now - datetime.timedelta(seconds=duration * epoch + 60)
             between = "s._2 BETWEEN '{from_timestamp}' AND '{to_timestamp}'".format(
                 from_timestamp=from_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 to_timestamp=to_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
             err = builder.build(
-                prefix=prefix,
-                alb=load_balancer_name,
-                targets=targets,
-                between=between,
+                prefix=prefix, alb=load_balancer_name, targets=targets, between=between
             )
             if err is not None:
                 logger.error("Aggregator failed to build queries: " + err)
@@ -251,11 +245,13 @@ def main():
         v = {
             "hostId": m["host_id"],
             "name": m["name"],
-            "time": m["timestamp"]-1,
-            "value": m["value"]
+            "time": m["timestamp"] - 1,
+            "value": m["value"],
         }
         data.append(v)
-        logger.info("\t".join([str(m["timestamp"]), m["host_id"], m["name"], str(m["value"])]))
+        logger.info(
+            "\t".join([str(m["timestamp"]), m["host_id"], m["name"], str(m["value"])])
+        )
     mkr.post_metrics(metrics=data)
 
 

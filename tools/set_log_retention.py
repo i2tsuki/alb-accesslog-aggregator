@@ -23,30 +23,29 @@ __doc__ = "set_log_retention.py set retention policy in AWS CloudWatch Logs log 
 if __name__ == "__main__":
     description = __doc__
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--retention",
-                        metavar="RETENTION",
-                        action="store",
-                        dest="retention", type=int,
-                        default=1, help="CloudWatch log retention in days")
+    parser.add_argument(
+        "--retention",
+        metavar="RETENTION",
+        action="store",
+        dest="retention",
+        type=int,
+        default=1,
+        help="CloudWatch log retention in days",
+    )
     args = parser.parse_args()
 
     client = boto3.client("lambda")
-    logs = boto3.client('logs')
+    logs = boto3.client("logs")
     retention = args.retention
 
     functions = []
-    resp = client.list_functions(
-        MaxItems=1000,
-    )
+    resp = client.list_functions(MaxItems=1000)
     for function in resp["Functions"]:
         functions.append(function)
     while True:
         if "NextMarker" in resp:
             marker = resp["NextMarker"]
-            resp = client.list_functions(
-                Marker=marker,
-                MaxItems=1000,
-            )
+            resp = client.list_functions(Marker=marker, MaxItems=1000)
             for function in resp["Functions"]:
                 functions.append(function)
         else:

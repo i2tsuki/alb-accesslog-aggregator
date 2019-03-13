@@ -2,7 +2,7 @@ import datetime
 import calendar
 
 
-class Metrics():
+class Metrics:
     def __init__(self):
         self.metrics = []
 
@@ -10,7 +10,11 @@ class Metrics():
         fixed_timestamp = self.fix_timestamp(timestamp)
 
         for metric in self.metrics:
-            if metric["host_id"] == host_id and metric["name"] == name and metric["fixed_timestamp"] == fixed_timestamp:
+            if (
+                metric["host_id"] == host_id
+                and metric["name"] == name
+                and metric["fixed_timestamp"] == fixed_timestamp
+            ):
                 metric["value"] = metric["value"] + value
                 return
 
@@ -32,13 +36,7 @@ def create_graph_definition_param(queries={}):
     for group in queries:
         metrics = []
         for query in group["query"]:
-            metrics.append(
-                {"name": query["name"], "isStacked": False}
-            )
-        params = {
-            "name": group["name"],
-            "unit": group["unit"],
-            "metrics": metrics,
-        }
+            metrics.append({"name": query["name"], "isStacked": False})
+        params = {"name": group["name"], "unit": group["unit"], "metrics": metrics}
         graph_definition.append(params)
     return graph_definition

@@ -1,7 +1,7 @@
 import os
 
 
-class Cli():
+class Cli:
     def __init__(self):
         self.mackerel_apikey = os.environ["MACKEREL_APIKEY"]
 
@@ -23,7 +23,7 @@ class Cli():
         # Service that have ALB host and its targets host
         self.mackerel_service = os.environ["MACKEREL_SERVICE"]
         # Role is target hosts registered the ALB
-        self.mackerel_role = os.environ["MACKEREL_ROLE"].replace(" ", "").split(sep=',')
+        self.mackerel_role = os.environ["MACKEREL_ROLE"].replace(" ", "").split(sep=",")
 
         # Logging verbosity
         self.verbose = False
